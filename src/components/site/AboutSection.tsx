@@ -17,17 +17,19 @@ export function AboutSection() {
           </p>
           <div className="mt-6 grid gap-4 text-base leading-relaxed text-muted-foreground">
             <p>
-              I build websites and digital products for businesses, brands,
-              entrepreneurs and creators — from service businesses that need to look
-              credible online, to ecommerce brands selling through social media, to
-              early-stage products that need to exist before they can be tested.
+              I'm a developer and software tester who enjoys turning ideas into things people can actually use. Through SitesByKamo, I build websites and digital products for businesses, entrepreneurs, brands and early-stage ideas — from professional business websites and ecommerce experiences to products that need to be designed, built and tested from the ground up.
             </p>
             <p>
-              My work sits between design and engineering: interface and experience on
-              one side, product thinking, automation and technical problem solving on
-              the other. That combination means a project doesn't stop at a nice-looking
-              page — it gets built, tested and shipped as something practical the
-              business can actually run on.
+              My background in software testing has shaped the way I build. I don't just think about how something looks; I think about how it works, what could break, how people will use it, and whether it solves the problem it was created for. That means bringing together development, UI/UX, automation, testing and problem-solving throughout the process.
+            </p>
+            <p>
+              I've worked across web development and software testing, building with technologies such as HTML, CSS, JavaScript, Java, Python, SQL, Selenium and Appium, while also exploring modern tools and frameworks to turn ideas into working products.
+            </p>
+            <p>
+              SitesByKamo is where I bring all of that together.
+            </p>
+            <p>
+              Whether I'm building a website for a business, developing a digital product like HairGo, creating an ecommerce experience, or experimenting with a new idea, my goal is the same: build something useful, make it work properly, and make it feel like a real product, not just another nice-looking website.
             </p>
           </div>
         </div>

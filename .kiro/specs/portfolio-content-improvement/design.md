@@ -2,333 +2,198 @@
 
 ## Overview
 
-This design specifies the technical changes needed to restructure the SitesByKamo portfolio website's project data, introduce video and gallery support, update the homepage selected work section, improve project detail pages, and revise the filtering system. The implementation works within the existing TanStack Router + React + Tailwind CSS + shadcn/ui architecture, modifying data models and components incrementally rather than rebuilding.
+This feature covers two targeted improvements to the SitesByKamo portfolio website:
 
-The core approach is:
-1. Restructure `src/data/projects.ts` to reference real local assets (screenshots + videos) and remove non-existent projects
-2. Create an asset manifest module that maps project slugs to imported assets
-3. Build reusable `VideoPlayer` and `ProjectGallery` components
-4. Update the `ProjectCard` component with hover video preview
-5. Revise the homepage editorial grid and project detail page
-6. Update the filter system with new categories
+1. **About Section Biography Update** — Replace the existing 2-paragraph biography in the About page with an updated 5-paragraph version that highlights the owner's dual background in development and software testing.
+
+2. **Email-Based Contact Form** — Replace the current WhatsApp redirect form submission with a proper email delivery mechanism using Web3Forms, a free form-to-email API designed for static sites.
+
+Both changes are content and integration focused. The site remains a static React + Vite application deployed on Cloudflare with no server-side backend.
 
 ## Architecture
 
-The existing architecture remains intact:
+The architecture remains unchanged: a client-side React SPA using TanStack Router, Tailwind CSS, and Vite. The only architectural addition is an outbound HTTP call from the contact form to the Web3Forms API endpoint.
 
 ```mermaid
-graph TD
-    A[TanStack Router] --> B[Route: / index.tsx]
-    A --> C[Route: /projects projects.index.tsx]
-    A --> D[Route: /projects/$projectId]
-    B --> E[Selected Work Section]
-    C --> F[Filter System + Project Grid]
-    D --> G[Project Detail Page]
-    E --> H[ProjectCard]
-    F --> H
-    G --> I[VideoPlayer]
-    G --> J[ProjectGallery]
-    H --> K[Video Preview on Hover]
-    
-    L[src/data/projects.ts] --> B
-    L --> C
-    L --> D
-    M[src/data/assets.ts] --> L
+graph LR
+    A[Contact Form Submit] --> B[Client-side Validation]
+    B -->|Valid| C[POST to Web3Forms API]
+    C -->|200 OK| D[Show Success Toast + Clear Form]
+    C -->|Error| E[Show Error Toast + Preserve Data]
+    B -->|Invalid| F[Show Inline Errors]
 ```
 
-**Key architectural decisions:**
+**Key decisions:**
 
-1. **Asset manifest pattern**: A new `src/data/assets.ts` file imports all asset files (images and videos) and exports them as a map keyed by project slug. This avoids dynamic imports (which Vite cannot statically analyze) and centralizes all asset references.
-
-2. **Slug-based routing**: The existing `$projectId` param in the route continues to serve as the project identifier. Projects get a new `slug` field that matches the route param, replacing the current `id` field.
-
-3. **Component composition**: Video and gallery are separate reusable components composed into the detail page and card, not baked into those components.
+- **Web3Forms over EmailJS/Formspree** — Web3Forms is free (250 submissions/month), requires no npm dependency, works via a single `fetch` POST, requires no signup beyond generating an access key, and supports custom fields and subject lines natively. It has no JavaScript SDK requirement, keeping the bundle unchanged.
+- **No backend needed** — The Web3Forms API accepts form data directly from the client. The access key is safe to include client-side (it only determines which inbox receives submissions, similar to a public form action URL).
+- **About section text stays in-component** — The biography text is static content with no dynamic variation. Keeping it directly in the `AboutSection` component (or extractable to a data constant) avoids unnecessary indirection.
 
 ## Components and Interfaces
 
-### New Components
+### 1. AboutSection Component (`src/components/site/AboutSection.tsx`)
 
-#### `src/components/site/VideoPlayer.tsx`
+**Change:** Replace the 2-paragraph biography `<div>` content with 5 new paragraphs.
 
-A reusable video component that handles responsive sizing, poster fallback, lazy loading, and error states.
-
+**Interface remains unchanged:**
 ```typescript
-interface VideoPlayerProps {
-  src: string;
-  poster: string;
-  alt: string;
-  controls?: boolean;
-  muted?: boolean;
-  autoPlay?: boolean;
-  loop?: boolean;
-  className?: string;
-  lazy?: boolean;
-}
+export function AboutSection(): JSX.Element
 ```
 
-Behavior:
-- Renders a `<video>` element with `playsInline`, `preload="metadata"`, responsive width
-- Shows poster image on error or unsupported format via `onError` handler
-- When `lazy` is true, wraps in an intersection observer to defer loading until near-viewport
-- Never autoplays unless explicitly set (for hover preview use case)
+The component continues to render inside the About page at `/about`. The only change is the text content within the existing `div.grid.gap-4` container.
 
-#### `src/components/site/ProjectGallery.tsx`
+### 2. ContactForm Component (`src/components/site/ContactForm.tsx`)
 
-Displays a grid of project screenshots with lazy loading.
+**Changes:**
+- Replace `handleSubmit` to POST form data to Web3Forms API instead of building a WhatsApp link
+- Add client-side validation with inline error messages
+- Add loading/submitting state during API call
+- Remove the disclaimer `<p>` element at the bottom
+- Add success/error state handling
+- Remove imports of `buildWhatsAppLink` and `defaultWhatsAppMessage`
 
+**Updated interface (internal):**
 ```typescript
-interface ProjectGalleryProps {
-  images: Array<{ src: string; alt: string }>;
-  projectName: string;
+interface FormState {
+  submitting: boolean;
+  errors: Record<string, string>;  // field name → error message
 }
+
+// Validation function
+function validateForm(data: FormData): Record<string, string>
+
+// Submit function
+async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void>
 ```
 
-Behavior:
-- Renders images in a responsive grid (1 col mobile, 2 col tablet+)
-- All images use `loading="lazy"` and `decoding="async"`
-- Consistent aspect ratio via Tailwind's `aspect-video` or `aspect-[4/3]`
-- Descriptive alt text per image
-
-#### `src/components/site/VideoPreview.tsx`
-
-A hover-activated muted video preview for project cards.
-
+**Web3Forms integration:**
 ```typescript
-interface VideoPreviewProps {
-  videoSrc: string;
-  posterSrc: string;
-  alt: string;
-}
+const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+const WEB3FORMS_ACCESS_KEY = "<access-key>"; // Generated from web3forms.com for kamohelomosiya89@gmail.com
 ```
 
-Behavior:
-- On mouse enter: loads and plays video (muted, loop, no controls)
-- On mouse leave: pauses video, resets to poster
-- Video element has `preload="none"` until hover to avoid loading all videos on page
-- Falls back to poster image if video fails or on touch devices
+### 3. Site Configuration (`src/data/site.ts`)
 
-### Modified Components
+**No changes required.** The `contactConfig.email` is already set to `kamohelomosiya89@gmail.com`. The `buildWhatsAppLink` and `defaultWhatsAppMessage` functions remain for use by the WhatsApp chat link on the contact page (which is preserved per Requirement 3).
 
-#### `ProjectCard` (updated)
+### 4. Contact Page (`src/routes/contact.tsx`)
 
-- Adds hover video preview when project has a `video` field
-- Keeps existing image display as the default state
-- On hover: crossfades from poster image to playing video
-- On touch devices: no video preview (just static image)
-
-### Data Layer
-
-#### `src/data/assets.ts` (new)
-
-Centralizes all static asset imports. Since filenames contain spaces, Vite handles this fine with standard ES module imports — the import path is a string literal that Vite resolves at build time.
-
-```typescript
-// Screenshot imports
-import auralink_screenshot from '@/assets/AuraLink_pic&vid/Screenshot 2026-08-11 at 19.29.53.png';
-import empty_screenshot from '@/assets/Empty_pic&vid/Screenshot 2026-08-11 at 19.45.17.png';
-// ... etc
-
-// Video imports
-import auralink_video from '@/assets/AuraLink_pic&vid/Screen Recording 2026-08-11 at 19.33.58.mov';
-import empty_video from '@/assets/Empty_pic&vid/Screen Recording 2026-08-11 at 19.44.19.mov';
-// ... etc
-
-export interface ProjectAssets {
-  screenshot: string;
-  video: string;
-}
-
-export const projectAssets: Record<string, ProjectAssets> = {
-  'auralink': { screenshot: auralink_screenshot, video: auralink_video },
-  'empty': { screenshot: empty_screenshot, video: empty_video },
-  // ... all 9 projects
-};
-```
-
-#### `src/data/projects.ts` (restructured)
-
-```typescript
-export type ProjectStatus =
-  | "LIVE"
-  | "CLIENT PROJECT"
-  | "CONCEPT"
-  | "PROTOTYPE"
-  | "REDESIGN"
-  | "EXPERIMENTAL";
-
-export type FilterKey =
-  | "ALL"
-  | "WEBSITES"
-  | "ECOMMERCE"
-  | "DIGITAL PRODUCTS"
-  | "BUSINESS"
-  | "FASHION";
-
-export interface Project {
-  slug: string;               // URL-safe identifier, used as route param
-  name: string;
-  category: string;
-  filter: Exclude<FilterKey, "ALL">;
-  status: ProjectStatus[];
-  summary: string;
-  description: string;
-  challenge: string;
-  solution: string;
-  result?: string;
-  features: string[];
-  technologies: string[];
-  image: string;              // poster/screenshot — imported asset URL
-  video?: string;             // video source — imported asset URL
-  gallery: string[];          // array of gallery image URLs (for now: [image])
-  imageAlt: string;
-  accent?: string;
-  liveUrl?: string;
-  githubUrl?: string;
-  featured?: boolean;
-}
-```
-
-Changes from current interface:
-- `id` → `slug` (URL-safe, matches route param)
-- Added `video?: string` for video asset path
-- Added `gallery: string[]` for screenshot gallery
-- `image` is now required (every project has a screenshot)
-- `featured` changed from numeric priority to boolean
-- `filter` uses new category set: WEBSITES, ECOMMERCE, DIGITAL PRODUCTS, BUSINESS, FASHION
-- Status set updated per requirements (added REDESIGN, removed MVP)
-- Removed projects: SLK Electrical, Aura Studio, HairGo, CapitalPilot, JetClean, Instagram Media Extractor, Kiro Development Automation
-- Renamed "Vanta Streetwear" → "Venta" (matching the asset folder name `Venta_pic&vid`)
-
-The `projects` array will contain exactly 9 entries with slugs:
-`auralink`, `empty`, `extreme-ethics`, `petpal`, `private-location`, `sole-society`, `venta`, `wanpuck-v1`, `wanpuck-v2`
-
-#### Helper functions (updated)
-
-```typescript
-export function getProject(slug: string): Project | undefined {
-  return projects.find((p) => p.slug === slug);
-}
-
-export function getProjectsByFilter(filter: FilterKey): Project[] {
-  if (filter === "ALL") return projects;
-  return projects.filter((p) => p.filter === filter);
-}
-
-export const filters: FilterKey[] = [
-  "ALL", "WEBSITES", "ECOMMERCE", "DIGITAL PRODUCTS", "BUSINESS", "FASHION"
-];
-```
+**No changes required.** The page layout, direct contact links (email mailto, WhatsApp chat), and "What Happens Next" section all remain as-is. Only the `ContactForm` component's internal behaviour changes.
 
 ## Data Models
 
-### Project Slug to Asset Folder Mapping
+### Form Submission Payload (sent to Web3Forms)
 
-| Slug | Asset Folder | Screenshot | Video |
-|------|-------------|-----------|-------|
-| auralink | AuraLink_pic&vid | Screenshot 2026-08-11 at 19.29.53.png | Screen Recording 2026-08-11 at 19.33.58.mov |
-| empty | Empty_pic&vid | Screenshot 2026-08-11 at 19.45.17.png | Screen Recording 2026-08-11 at 19.44.19.mov |
-| extreme-ethics | ExtremeEthics_pic&vid | Screenshot 2026-08-11 at 19.48.24.png | Screen Recording 2026-08-11 at 19.50.12.mov |
-| petpal | PetPal_pic&vid | Screenshot 2026-08-11 at 19.57.42.png | Screen Recording 2026-08-11 at 19.57.56.mov |
-| private-location | PrivateLocation_pic&vid | Screenshot 2026-08-11 at 19.59.21.png | Screen Recording 2026-08-11 at 19.59.29.mov |
-| sole-society | SoleSociety_pic&vid | Screenshot 2026-08-11 at 20.01.22.png | Screen Recording 2026-08-11 at 20.02.12.mov |
-| venta | Venta_pic&vid | Screenshot 2026-08-11 at 20.03.42.png | Screen Recording 2026-08-11 at 20.04.12.mov |
-| wanpuck-v1 | WanPuckv1_pic&vid | Screenshot 2026-08-11 at 20.16.11.png | Screen Recording 2026-08-11 at 20.16.20.mov |
-| wanpuck-v2 | WanPuckv2_pic&vid | Screenshot 2026-08-11 at 20.14.29.png | Screen Recording 2026-08-11 at 20.14.59.mov |
+```typescript
+interface ContactFormPayload {
+  access_key: string;        // Web3Forms access key
+  subject: string;           // "New Project Enquiry — SitesByKamo"
+  from_name: string;         // Visitor's name (from form)
+  name: string;              // Visitor's name
+  email: string;             // Visitor's email
+  whatsapp: string;          // WhatsApp number (optional)
+  business: string;          // Business/Company name (optional)
+  projectType: string;       // Selected project type
+  budget: string;            // Budget range (optional)
+  timeline: string;          // Timeline (optional)
+  description: string;       // Project description
+}
+```
 
-### Filter Category Assignments
+### Web3Forms API Response
 
-| Project | Filter Category |
-|---------|----------------|
-| AuraLink | DIGITAL PRODUCTS |
-| Empty | FASHION |
-| Extreme Ethics Clothing | FASHION |
-| PetPal | WEBSITES |
-| Private Location | BUSINESS |
-| Sole Society | ECOMMERCE |
-| Venta | ECOMMERCE |
-| WanPuck Upholstery V1 | WEBSITES |
-| WanPuck Upholstery V2 | WEBSITES |
+```typescript
+interface Web3FormsResponse {
+  success: boolean;
+  message: string;
+}
+```
 
-### SEO Metadata Pattern
+### Validation Rules
 
-- Site title: "SitesByKamo | Web Development & Digital Products"
-- Project detail page title: `"[Project Name] — [Category] | SitesByKamo"`
-- Project detail page meta description: `project.summary`
+| Field | Required | Validation |
+|-------|----------|------------|
+| Name | Yes | Non-whitespace content (`.trim().length > 0`) |
+| Email | Yes | Non-whitespace + valid email format (regex or native) |
+| WhatsApp Number | No | None |
+| Business/Company | No | None |
+| Project Type | Yes | Non-empty selection (not the placeholder) |
+| Budget Range | No | None |
+| Timeline | No | None |
+| Project Description | Yes | Non-whitespace content (`.trim().length > 0`) |
+
+## Correctness Properties
+
+*A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+
+### Property 1: Email payload completeness
+
+*For any* valid form submission with all fields populated, the payload sent to the Web3Forms API SHALL include all submitted form field values (Name, Email, WhatsApp Number, Business/Company, Project Type, Budget Range, Timeline, Project Description) without data loss or truncation.
+
+**Validates: Requirements 2.2**
+
+### Property 2: Whitespace-only required fields are rejected
+
+*For any* string composed entirely of whitespace characters (spaces, tabs, newlines) entered into a required field (Name, Email, Project Type, Project Description), the form SHALL reject submission and the validation function SHALL return an error for that field.
+
+**Validates: Requirements 2.7**
+
+### Property 3: Invalid email formats are rejected
+
+*For any* string that does not match a valid email pattern (containing no `@`, missing domain, etc.), the form SHALL reject submission when that string is entered in the Email field.
+
+**Validates: Requirements 2.7**
 
 ## Error Handling
 
-| Scenario | Handling |
-|----------|----------|
-| Video format unsupported | `<video>` `onError` handler hides video, shows poster image fallback |
-| Video fails to load | Same as above — poster image displayed |
-| Project slug not found | Existing `notFound()` in route loader (already implemented) |
-| Asset import missing | Build-time error from Vite — caught during `bun run dev` |
-| Browser doesn't support `.mov` | Poster image fallback via error handler |
+| Scenario | Behaviour |
+|----------|-----------|
+| Validation failure (required field empty/whitespace) | Prevent submission, show inline error beside the failing field, preserve all data |
+| Validation failure (invalid email format) | Prevent submission, show inline error beside email field, preserve all data |
+| Web3Forms API returns non-200 / network error | Show error toast ("Submission failed — please try again"), preserve all form data |
+| Web3Forms API returns `{ success: false }` | Treat as delivery failure, show error toast, preserve form data |
+| Web3Forms API returns `{ success: true }` | Show success toast ("Enquiry sent — I'll be in touch"), clear all form fields |
+| Web3Forms access key missing/invalid | Same as API error — show error toast to visitor |
 
-Note: `.mov` files (H.264/HEVC in QuickTime container) are supported in Safari and most Chromium browsers. For broader compatibility, a `<source>` element pattern could be used in future, but since these are screen recordings primarily viewed on modern browsers, the poster fallback is sufficient.
+**Graceful degradation:** If the Web3Forms API is unreachable (network offline), the form shows the error message and preserves data so the visitor can retry or use the direct email/WhatsApp links displayed alongside the form.
 
 ## Testing Strategy
 
-### Approach
+### Unit Tests (Example-Based)
 
-Since this feature involves UI rendering, data restructuring, and component composition — not pure algorithmic logic — property-based testing is not applicable. The testing strategy uses:
+Unit tests cover the static content requirements and specific UI interactions:
 
-1. **Build verification**: TypeScript compilation + Vite build confirms all imports resolve and types are correct
-2. **Manual visual testing**: Dev server inspection of all pages
-3. **Lint verification**: ESLint confirms code quality
+- **About section content**: Verify the 5 new paragraphs render in order, old text is absent
+- **About section spacing**: Verify paragraphs render as `<p>` elements within a `gap-4` container
+- **Form field presence**: Verify all form fields render in the correct order with correct types
+- **Success flow**: Mock successful API response → verify toast + fields cleared
+- **Error flow**: Mock failed API response → verify error toast + fields preserved
+- **WhatsApp removal**: Verify no `window.open` to WhatsApp URL on submit
+- **Disclaimer removal**: Verify disclaimer text is absent from rendered form
+- **Contact links preserved**: Verify mailto and WhatsApp links remain on the contact page
 
-### Why PBT Does Not Apply
+### Property-Based Tests
 
-- The feature is primarily UI rendering (React components displaying data)
-- Data restructuring is a one-time refactor with fixed inputs (9 projects, specific assets)
-- No complex algorithmic transformations, parsers, or serializers
-- Component behavior is visual (hover states, video playback) not data-transformative
-- Asset imports are static — either they resolve at build time or they don't
+Property tests validate universal correctness across randomized inputs:
 
-### Verification Checklist
+- **Property 1 — Payload completeness**: Generate random valid form data → build payload → verify all fields are present in the payload object
+  - Minimum 100 iterations
+  - Tag: `Feature: portfolio-content-improvement, Property 1: Email payload completeness`
 
-1. `bun run dev` starts without TypeScript errors
-2. `bun run build` completes successfully
-3. All 9 projects render on `/projects` page
-4. Filter buttons show correct subsets
-5. Each project detail page loads at `/projects/[slug]`
-6. Video plays with controls on detail pages
-7. Hover video preview works on project cards (desktop)
-8. Homepage editorial grid shows all 9 projects
-9. No broken image/video references in the console
-10. Responsive layout works on mobile viewport
+- **Property 2 — Whitespace rejection**: Generate random whitespace-only strings → call validation function with them in required fields → verify rejection
+  - Minimum 100 iterations
+  - Tag: `Feature: portfolio-content-improvement, Property 2: Whitespace-only required fields are rejected`
 
-## Implementation Notes
+- **Property 3 — Invalid email rejection**: Generate random strings without valid email structure → call validation function → verify email field error
+  - Minimum 100 iterations
+  - Tag: `Feature: portfolio-content-improvement, Property 3: Invalid email formats are rejected`
 
-### Handling Filenames with Spaces
+### Testing Library
 
-Vite handles import paths with spaces natively — the import statement uses a string literal:
-```typescript
-import screenshot from '@/assets/AuraLink_pic&vid/Screenshot 2026-08-11 at 19.29.53.png';
-```
-This resolves correctly at build time. No renaming of files is needed.
+- **Property-based testing**: Use [fast-check](https://github.com/dubzzz/fast-check) — the standard PBT library for TypeScript/JavaScript. It integrates with Vitest (which is compatible with the project's Vite setup).
+- **Component testing**: Vitest + React Testing Library for rendering and asserting DOM output.
 
-### Video Lazy Loading Strategy
+### Integration Tests
 
-- Project detail page: `preload="metadata"` on the `<video>` element loads only enough to show duration/dimensions
-- Project cards: `preload="none"` — video data only loads on hover
-- Intersection observer not strictly needed since `preload="none"` prevents network requests; the browser handles lazy behavior
-
-### Route Parameter Update
-
-The existing route `projects.$projectId.tsx` uses `params.projectId` which maps to the URL segment. The `getProject()` function now looks up by `slug` instead of `id`. The route file name doesn't change — only the lookup logic inside it.
-
-### Homepage Editorial Grid
-
-The selected work section displays all 9 projects in a varied grid layout:
-- Row 1: Full-width featured card (1 project)
-- Row 2: Two-column split (2 projects)
-- Row 3: Two-column split reversed (2 projects)  
-- Row 4: Full-width featured card (1 project)
-- Row 5: Three-column (3 projects)
-
-This uses the existing 12-column grid system with `lg:col-span-*` classes.
-
-### Contact Config Update
-
-Add `github: "https://github.com/Kamo89"` to `contactConfig` in `src/data/site.ts` (already present — verified).
+- Manual verification that Web3Forms delivers emails to kamohelomosiya89@gmail.com after deployment
+- Verify the access key works by submitting a test enquiry on the deployed site

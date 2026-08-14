@@ -4,10 +4,10 @@
  * Fill these in and every CTA across the site updates automatically.
  */
 export const contactConfig = {
-  email: "",
+  email: "kamohelomosiya89@gmail.com",
   whatsapp: "27718100711",
-  instagram: "",
-  linkedin: "",
+  instagram: "https://www.instagram.com/sitesbykamo?utm_source=qr",
+  linkedin: "https://www.linkedin.com/in/kamohelo-mosiya-772924221/",
   github: "https://github.com/Kamo89",
 } as const;
 
@@ -20,7 +20,7 @@ export const brand = {
     "Modern websites and digital experiences built for businesses, brands and creators.",
   statement:
     "I design and build modern websites and digital products that help businesses look credible, attract customers and turn visitors into enquiries.",
-  location: "Midrand, South Africa",
+  location: "Alberton, South Africa",
 } as const;
 
 export const navLinks = [
