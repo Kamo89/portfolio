@@ -17,10 +17,6 @@ The portfolio features selected projects I've designed and built, along with the
 
 AuraLink · Empty · Extreme Ethics · PetPal · Private Location · Sole Society · Venta · WanPuck V1 · WanPuck V2
 
-### Contact
-
-WhatsApp: +27 71 810 0711  
-GitHub: https://github.com/Kamo89
 
 ---
 
