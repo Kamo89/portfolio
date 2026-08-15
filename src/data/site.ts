@@ -216,7 +216,7 @@ export interface PricingTier {
 export const pricingTiers: PricingTier[] = [
   {
     name: "Basic Website",
-    range: "R1,000 – R2,000Test",
+    range: "R1,000 – R2,000",
     features: ["1–3 pages", "Mobile responsive", "Simple & clean design", "WhatsApp integration", "Basic SEO setup"],
   },
   {
