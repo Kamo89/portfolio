@@ -1,4 +1,5 @@
 import { brand, technologies } from "@/data/site";
+import { projects } from "@/data/projects";
 import { SectionHeading } from "./SectionHeading";
 import { TechnologyBadge } from "./TechnologyBadge";
 import { Reveal } from "./Reveal";
@@ -45,7 +46,7 @@ export function AboutSection() {
           </ul>
           <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
             {[
-              { value: "14", label: "Projects & products" },
+              { value: String(projects.length), label: "Projects & products" },
               { value: "6", label: "Industries" },
               { value: "100%", label: "Mobile-first builds" },
             ].map((s) => (

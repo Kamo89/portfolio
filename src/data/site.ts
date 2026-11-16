@@ -171,11 +171,12 @@ export const projectTypes = [
   "Not sure yet",
 ];
 
+// Kept in line with pricingTiers below.
 export const budgetRanges = [
-  "Under R5 000",
-  "R5 000 – R15 000",
-  "R15 000 – R40 000",
-  "R40 000+",
+  "Under R2 000",
+  "R2 000 – R5 000",
+  "R5 000 – R8 000",
+  "R8 000+",
   "Prefer to discuss",
 ];
 
