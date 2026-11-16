@@ -67,7 +67,7 @@ function ProjectDetail() {
     .slice(0, 3);
 
   const links = [
-    { label: "LIVE WEBSITE", href: project.liveUrl },
+    { label: project.liveLabel ?? "LIVE WEBSITE", href: project.liveUrl },
     { label: "GITHUB", href: project.githubUrl },
   ].filter((l) => Boolean(l.href));
 

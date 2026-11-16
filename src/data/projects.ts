@@ -1,4 +1,9 @@
 import { projectAssets } from "@/data/assets";
+import theVaultCases from "@/assets/TheVault_pic/the-vault-cases.png";
+import theVaultEvidence from "@/assets/TheVault_pic/the-vault-evidence.png";
+import theVaultStatements from "@/assets/TheVault_pic/the-vault-statements.png";
+import theVaultBoard from "@/assets/TheVault_pic/the-vault-board.png";
+import theVaultVerdict from "@/assets/TheVault_pic/the-vault-verdict.png";
 
 export type ProjectStatus =
   | "LIVE"
@@ -35,6 +40,8 @@ export interface Project {
   imageAlt: string;
   accent?: string;
   liveUrl?: string;
+  /** Button text for liveUrl. Defaults to "LIVE WEBSITE". */
+  liveLabel?: string;
   githubUrl?: string;
   featured?: boolean;
 }
@@ -49,6 +56,42 @@ export const filters: FilterKey[] = [
 ];
 
 export const projects: Project[] = [
+  {
+    slug: "the-vault",
+    name: "The Vault",
+    category: "Game / Web App",
+    filter: "DIGITAL PRODUCTS",
+    status: ["LIVE"],
+    summary:
+      "A browser detective game where players work real, solved murder cases from the evidence. Live on itch.io and installable as an app.",
+    description:
+      "The Vault is a detective game built as a companion to The Crime Vault, my true-crime channel. Players open a case file, read the evidence, test every claim against it and make one final call. It ships with a fictional training case set in Maboneng and four real, solved cases from South Africa and the US: two single killers and two serial killers.",
+    challenge:
+      "True crime is usually something people watch, not something they work through. Making it interactive raised a harder problem: real cases involve real victims and real people who were never guilty, so the game had to be fun without being disrespectful, inaccurate or unfair to anyone.",
+    solution:
+      "An evidence-driven game loop: reading one item can uncover the next, players disprove claims by presenting the evidence that contradicts them, and a corkboard and auto-built timeline help them reason. Real cases follow strict rules: solved cases only, every fact sourced from court records and reporting, wrong answers are theories rather than real innocent people, no graphic detail, and every case ends by naming the victims.",
+    result:
+      "Published on itch.io and GitHub Pages as a free, installable web app that works offline. Players get a score and rank for each case and a running record of what they've solved.",
+    features: [
+      "Five case files, four of them real",
+      "Evidence that unlocks more evidence",
+      "Test claims against evidence to expose lies",
+      "Drag-and-drop corkboard with red string",
+      "Timeline built from discovered evidence",
+      "One-shot verdict with scoring and ranks",
+      "Sources and victims named in every real case",
+      "Installable, works offline",
+    ],
+    technologies: ["JavaScript", "HTML", "CSS", "PWA", "Playwright"],
+    image: theVaultCases,
+    gallery: [theVaultEvidence, theVaultStatements, theVaultBoard, theVaultVerdict],
+    imageAlt:
+      "The Vault detective game case select screen with five case-file folders",
+    liveUrl: "https://kamo823.itch.io/the-vault",
+    liveLabel: "PLAY ON ITCH.IO",
+    githubUrl: "https://github.com/Kamo89/the-crime-vault",
+    featured: true,
+  },
   {
     slug: "auralink",
     name: "AuraLink",

@@ -38,6 +38,7 @@ export const Route = createFileRoute("/")({
 
 const homeFeatured = [
   "extreme-ethics",
+  "the-vault",
   "wanpuck-v2",
   "auralink",
   "sole-society",
@@ -58,6 +59,7 @@ const LAYOUT = [
   { span: "lg:col-span-4", size: "sm" },       // Row 5: 4/4/4 three-column — 3 projects
   { span: "lg:col-span-4", size: "sm" },
   { span: "lg:col-span-4", size: "sm" },
+  { span: "lg:col-span-12", size: "lg" },      // Row 6: full-width — 1 project
 ] as const;
 
 function Index() {

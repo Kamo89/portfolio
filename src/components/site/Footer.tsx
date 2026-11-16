@@ -2,6 +2,15 @@ import { Link } from "@tanstack/react-router";
 import { brand, navLinks, contactConfig } from "@/data/site";
 import { SocialLinks } from "./SocialLinks";
 
+/** "27718100711" -> "+27 71 810 0711" */
+function formatPhone(raw: string) {
+  const d = raw.replace(/[^\d]/g, "");
+  if (d.startsWith("27") && d.length === 11) {
+    return `+27 ${d.slice(2, 4)} ${d.slice(4, 7)} ${d.slice(7)}`;
+  }
+  return `+${d}`;
+}
+
 export function Footer() {
   return (
     <footer className="border-t border-line bg-surface/30">
@@ -54,7 +63,14 @@ export function Footer() {
             </li>
             <li>
               {contactConfig.whatsapp ? (
-                <span>{contactConfig.whatsapp}</span>
+                <a
+                  href={`https://wa.me/${contactConfig.whatsapp.replace(/[^\d]/g, "")}`}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="transition-colors hover:text-foreground"
+                >
+                  WhatsApp {formatPhone(contactConfig.whatsapp)}
+                </a>
               ) : (
                 <span className="text-muted-foreground/60">
                   WhatsApp — to be configured

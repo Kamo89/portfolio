@@ -29,7 +29,7 @@ export function AboutSection() {
               SitesByKamo is where I bring all of that together.
             </p>
             <p>
-              Whether I'm building a website for a business, developing a digital product like HairGo, creating an ecommerce experience, or experimenting with a new idea, my goal is the same: build something useful, make it work properly, and make it feel like a real product, not just another nice-looking website.
+              Whether I'm building a website for a business, developing a digital product like HairGo, creating an ecommerce experience, or building a game like The Vault, my goal is the same: build something useful, make it work properly, and make it feel like a real product, not just another nice-looking website.
             </p>
           </div>
         </div>

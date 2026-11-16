@@ -1,7 +1,6 @@
 /**
  * Central configuration for SitesByKamo.
- * Contact details are intentionally EMPTY until real values are supplied.
- * Fill these in and every CTA across the site updates automatically.
+ * Change contact details here and every CTA across the site updates automatically.
  */
 export const contactConfig = {
   email: "kamohelomosiya89@gmail.com",

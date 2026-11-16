@@ -12,13 +12,13 @@ export const Route = createFileRoute("/projects/")({
       {
         name: "description",
         content:
-          "Browse every SitesByKamo project by category: business websites, ecommerce stores, digital products, creator platforms, service businesses and experimental tooling.",
+          "Browse every SitesByKamo project by category: business websites, ecommerce stores, digital products, creator platforms, service businesses and games.",
       },
       { property: "og:title", content: "Projects | SitesByKamo" },
       {
         property: "og:description",
         content:
-          "Business websites, ecommerce, digital products, creator platforms and developer tooling.",
+          "Business websites, ecommerce, digital products, creator platforms and games.",
       },
       { property: "og:url", content: "/projects" },
     ],
